@@ -1,11 +1,11 @@
 Dew Point Fan - Bluetooth version
 ---------------------------------
 # Todo's
-- Fake Implementierung von display.Display (wg. Test auf macOS)
+- ~~Fake Implementierung von display.Display (wg. Test auf macOS)~~
 - Anbindung InfluxDB (neuen Bereich einrichten)
 - Mittelwertbildung und Senden an InfluxDB 1-mal pro Minute
 - Web-Server implementieren
-
+- Auswertung der Taupunkte inkl. Reason
 
 
 ## Setup Raspberry PI

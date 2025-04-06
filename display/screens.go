@@ -3,6 +3,7 @@ package display
 import (
 	"dpf-bt/sensor"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 )
@@ -66,8 +67,8 @@ func FanInfoScreen(display Display, fanData sensor.FanData, sensorInside sensor.
 		shouldBeOn = "ON"
 	}
 	now := time.Now()
-	insideLastSeen := int32(now.Sub(sensorInside.Scanned).Seconds())
-	outsideLastSeen := int32(now.Sub(sensorOutside.Scanned).Seconds())
+	insideLastSeen := int32(math.Min(float64(now.Sub(sensorInside.Scanned).Seconds()), 9999))
+	outsideLastSeen := int32(math.Min(float64(now.Sub(sensorOutside.Scanned).Seconds()), 9999))
 	printLine(display, 0, fmt.Sprintf("Fan is %s (%s)", isOn, shouldBeOn), false)
 	printLine(display, 1, fmt.Sprintf("Reason: %s", fanData.Reason), false)
 	printLine(display, 2, fmt.Sprintf("---: "), false)

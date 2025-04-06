@@ -17,7 +17,7 @@ const (
 	cmdPrintln
 )
 
-var lg = logger.NewPackageLogger("lcd", logger.InfoLevel)
+var lgLcd = logger.NewPackageLogger("lcd", logger.InfoLevel)
 
 // lcdData represents the internal structure for managing an LCD using an I2C bus and supporting
 // scrolling functionality.
@@ -110,7 +110,7 @@ func (lcd *lcdData) commandHandler() {
 			panic("unhandled default case")
 		}
 		if err != nil {
-			lg.Error(err.Error())
+			lgLcd.Error(err.Error())
 			lcd.retryDevice()
 		}
 	}
@@ -163,7 +163,7 @@ func (lcd *lcdData) Close() {
 // PrintLine writes text to a specific line on the LCD or scrolls it if the scroll flag is true and text exceeds the limit.
 func (lcd *lcdData) PrintLine(line int, text string, scroll bool) {
 	if line < 0 || line >= numLines {
-		lg.Error("LCD display row is ouf of bounds: ", line)
+		lgLcd.Error("LCD display row is ouf of bounds: ", line)
 		return
 	}
 	if scroll {
@@ -193,30 +193,30 @@ func (lcd *lcdData) GetMinMaxRowNum() (int, int) {
 
 // retryDevice attempts to reinitialize the LCD device and its I2C connection after a failure, incrementing retryCount.
 func (lcd *lcdData) retryDevice() {
-	lg.Info("Start of retryDevice(): ", lcd.retryCount)
+	lgLcd.Info("Start of retryDevice(): ", lcd.retryCount)
 	var err error
 	lcd.i2cBus, err = i2c.NewI2C(0x27, 1)
 	if err != nil {
-		lg.Error(err.Error())
+		lgLcd.Error(err.Error())
 	}
 	time.Sleep(3 * time.Second)
 
 	lcd.dev, err = device.NewLcd(lcd.i2cBus, device.LCD_20x4)
 	if err != nil {
-		lg.Error(err.Error())
+		lgLcd.Error(err.Error())
 	}
 	time.Sleep(time.Duration(lcd.initDelay) * time.Second)
 	lcd.retryCount++
 	lcd.Clear()
 	lcd.Backlight(true)
-	lg.Info("End of retryDevice(): %d", lcd.retryCount)
+	lgLcd.Info("End of retryDevice(): %d", lcd.retryCount)
 }
 
 // New initializes and returns a new Display instance with the given scroll header option, speed, and
 // initial delay.
 // Returns an error if the initialization process fails.
 func New(scrollHeader bool, speed int, initDelay int) (_ Display, err error) {
-	lg.Debug("LCD initializing...")
+	lgLcd.Debug("LCD initializing...")
 	_ = logger.ChangePackageLogLevel("i2c", logger.WarnLevel)
 	lcd := lcdData{scrollSpeed: speed, charsPerLine: numChars, cmdChan: make(chan command)}
 	err = nil
@@ -233,14 +233,14 @@ func New(scrollHeader bool, speed int, initDelay int) (_ Display, err error) {
 
 	lcd.i2cBus, err = i2c.NewI2C(0x27, 1)
 	if err != nil {
-		lg.Error(err.Error())
+		lgLcd.Error(err.Error())
 		return &lcd, err
 	}
 	time.Sleep(3 * time.Second)
 
 	lcd.dev, err = device.NewLcd(lcd.i2cBus, device.LCD_20x4)
 	if err != nil {
-		lg.Error(err.Error())
+		lgLcd.Error(err.Error())
 		return &lcd, err
 	}
 	// time.Sleep(time.Duration(lcd.initDelay) * time.Second)
