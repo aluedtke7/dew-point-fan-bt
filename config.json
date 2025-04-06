@@ -1,0 +1,30 @@
+{
+  "inside": {
+    "mac": "9D:8B:00:00:18:BD",
+    "temperature-calibration": -1.5,
+    "humidity-calibration": -1.2
+  },
+  "outside": {
+    "mac": "9D:F2:00:00:14:B5",
+    "temperature-calibration": -0.74,
+    "humidity-calibration": -0.38
+  },
+  "influx": {
+    "url": "",
+    "token": "",
+    "org": "private",
+    "bucket": "dpf-bt"
+  },
+  "lcd": {
+    "delay": 1,
+    "scrollSpeed": 500,
+    "screenChange": 7
+  },
+  "fan": {
+    "minDiff": 4.0,
+    "hysteresis": 1.0,
+    "minHumidityInside": 50.0,
+    "minTempInside": 10.0,
+    "minTempOutside": -10.0
+  }
+}
