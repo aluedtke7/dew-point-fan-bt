@@ -1,3 +1,6 @@
+//go:build !linux && !arm
+// +build !linux,!arm
+
 package display
 
 import (
@@ -15,8 +18,8 @@ type TerminalDisplay struct {
 	minRow, maxRow int      // Range of row indices supported by the display
 }
 
-// NewTerminalLcd creates a new TerminalDisplay
-func NewTerminalLcd(_ bool, _ int, _ int) (*TerminalDisplay, error) {
+// New creates a new TerminalDisplay
+func New(_ bool, _ int, _ int) (*TerminalDisplay, error) {
 	const charsPerLine = 20
 	const numRows = 4
 	return &TerminalDisplay{
