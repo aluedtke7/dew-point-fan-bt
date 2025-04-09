@@ -18,11 +18,11 @@ func printLine(disp Display, line int, text string, scroll bool) {
 }
 
 // formatUptime converts uptime from seconds into a human-readable format of days and hours.
-func formatUptime(seconds uint32) string {
-	days := seconds / (24 * 3600)
-	hours := (seconds % (24 * 3600)) / 3600
-	return fmt.Sprintf("%dd %dh", days, hours)
-}
+// func formatUptime(seconds uint32) string {
+// 	days := seconds / (24 * 3600)
+// 	hours := (seconds % (24 * 3600)) / 3600
+// 	return fmt.Sprintf("%dd %dh", days, hours)
+// }
 
 // formatUpDays converts a given time in seconds to a string representing the number of full days.
 func formatUpDays(seconds uint32) string {
@@ -62,21 +62,22 @@ func InfoScreen(display Display, sensorInside sensor.SensorData, sensorOutside s
 		formatUpDays(sensorOutside.Uptime)), false)
 }
 
-func FanInfoScreen(display Display, fanData sensor.FanData, sensorInside sensor.SensorData,
-	sensorOutside sensor.SensorData) {
+func ResultScreen(display Display, result sensor.ResultData, sensorInside sensor.SensorData,
+	sensorOutside sensor.SensorData, fanConfig sensor.FanConfig) {
 	isOn := "OFF"
 	shouldBeOn := "OFF"
-	if fanData.IsOn {
+	if result.IsOn {
 		isOn = "ON"
 	}
-	if fanData.ShouldBeOn {
+	if result.ShouldBeOn {
 		shouldBeOn = "ON"
 	}
 	now := time.Now()
 	insideLastSeen := int32(math.Min(float64(now.Sub(sensorInside.Scanned).Seconds()), 9999))
 	outsideLastSeen := int32(math.Min(float64(now.Sub(sensorOutside.Scanned).Seconds()), 9999))
 	printLine(display, 0, fmt.Sprintf("Fan is %s (%s)", isOn, shouldBeOn), false)
-	printLine(display, 1, fmt.Sprintf("Reason: %s", fanData.Reason), false)
-	printLine(display, 2, fmt.Sprintf("---: "), false)
+	printLine(display, 1, fmt.Sprintf("> %16s <", sensor.ReasonName[result.Outcome]), false)
+	printLine(display, 2, fmt.Sprintf("Dp diff:%5.1fC (%3.1f)",
+		sensorInside.DewPoint-sensorOutside.DewPoint, fanConfig.MinDiff+fanConfig.Hysteresis), false)
 	printLine(display, 3, fmt.Sprintf("In/Out:  %4ds %4ds", insideLastSeen, outsideLastSeen), false)
 }

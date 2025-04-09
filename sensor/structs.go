@@ -34,8 +34,33 @@ type FanConfig struct {
 	MinTempOutside    float64
 }
 
-type FanData struct {
+type Reason int
+
+var ReasonName = map[Reason]string{
+	ReasonNone:                 "none",
+	ReasonNoData:               "no data",
+	ReasonNoEnoughData:         "not enough data",
+	ReasonDewPointOverHyst:     "dp over hyst",
+	ReasonDewPointUnderHyst:    "dp under hyst",
+	ReasonInsideTempTooLow:     "in temp too low",
+	ReasonOutsideTempTooLow:    "out temp too low",
+	ReasonInsideHumidityTooLow: "in hum too low",
+}
+
+const (
+	ReasonNone Reason = iota
+	ReasonNoData
+	ReasonNoEnoughData
+	ReasonDewPointOverHyst
+	ReasonDewPointUnderHyst
+	ReasonInsideTempTooLow
+	ReasonOutsideTempTooLow
+	ReasonInsideHumidityTooLow
+)
+
+type ResultData struct {
+	DpDiff     float64
 	ShouldBeOn bool
 	IsOn       bool
-	Reason     string
+	Outcome    Reason
 }

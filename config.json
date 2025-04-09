@@ -21,9 +21,9 @@
     "screenChange": 7
   },
   "fan": {
-    "minDiff": 4.0,
+    "minDiff": 3.0,
     "hysteresis": 1.0,
-    "minHumidityInside": 50.0,
+    "minHumidityInside": 30.0,
     "minTempInside": 10.0,
     "minTempOutside": -10.0
   }
