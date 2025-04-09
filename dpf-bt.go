@@ -47,8 +47,8 @@ func main() {
 		lg.Panic("failed to enable BLE adapter")
 	}
 
-	// disp, err = display.New(false, lcdScrollSpeed, lcdDelay)
-	disp, err = display.NewTerminalLcd(false, lcdScrollSpeed, lcdDelay)
+	disp, err = display.New(false, lcdScrollSpeed, lcdDelay)
+	// disp, err = display.NewTerminalLcd(false, lcdScrollSpeed, lcdDelay)
 	if err != nil {
 		lg.Errorf("Couldn't initialize display: %s", err)
 	} else {

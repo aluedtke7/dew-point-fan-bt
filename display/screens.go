@@ -24,6 +24,12 @@ func formatUptime(seconds uint32) string {
 	return fmt.Sprintf("%dd %dh", days, hours)
 }
 
+// formatUpDays converts a given time in seconds to a string representing the number of full days.
+func formatUpDays(seconds uint32) string {
+	days := seconds / (24 * 3600)
+	return fmt.Sprintf("%dd", days)
+}
+
 // StartScreen initializes the display with a startup message and the provided IP address.
 func StartScreen(display Display, ip string) {
 	printLine(display, 0, "DewPointFan BT v1", false)
@@ -52,8 +58,8 @@ func InfoScreen(display Display, sensorInside sensor.SensorData, sensorOutside s
 		sensorOutside.RSSI), false)
 	printLine(display, 2, fmt.Sprintf("Bat: %7d %7d", sensorInside.BatLevel,
 		sensorOutside.BatLevel), false)
-	printLine(display, 3, fmt.Sprintf("Up:  %7s %7s", formatUptime(sensorInside.Uptime),
-		formatUptime(sensorOutside.Uptime)), false)
+	printLine(display, 3, fmt.Sprintf("Up:  %7s %7s", formatUpDays(sensorInside.Uptime),
+		formatUpDays(sensorOutside.Uptime)), false)
 }
 
 func FanInfoScreen(display Display, fanData sensor.FanData, sensorInside sensor.SensorData,
