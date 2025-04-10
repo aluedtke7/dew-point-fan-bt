@@ -3,6 +3,7 @@ package main
 import (
 	"dpf-bt/bluetooth"
 	"dpf-bt/display"
+	"dpf-bt/gpio"
 	"dpf-bt/sensor"
 	"dpf-bt/utility"
 	"github.com/d2r2/go-logger"
@@ -21,6 +22,7 @@ var (
 	resultData      = sensor.ResultData{}
 	sensors         = sensor.Sensors{}
 	disp            display.Display
+	ioPins          gpio.Gpio
 	lcdDelay        int
 	lcdScrollSpeed  int
 	lcdScreenChange int
@@ -54,6 +56,10 @@ func main() {
 		disp.Backlight(true)
 		ipAddress = utility.LogNetworkInterfacesAndGetIpAdr()
 		display.StartScreen(disp, ipAddress)
+	}
+	ioPins, err = gpio.New()
+	if err != nil {
+		lg.Errorf("Couldn't initialize GPIO: %s", err)
 	}
 
 	var ctrlChan = make(chan os.Signal, 1)

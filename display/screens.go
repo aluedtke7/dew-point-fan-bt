@@ -76,7 +76,7 @@ func ResultScreen(display Display, result sensor.ResultData, sensorInside sensor
 	insideLastSeen := int32(math.Min(float64(now.Sub(sensorInside.Scanned).Seconds()), 9999))
 	outsideLastSeen := int32(math.Min(float64(now.Sub(sensorOutside.Scanned).Seconds()), 9999))
 	printLine(display, 0, fmt.Sprintf("Fan is %s (%s)", isOn, shouldBeOn), false)
-	printLine(display, 1, fmt.Sprintf("> %16s <", sensor.ReasonName[result.Outcome]), false)
+	printLine(display, 1, fmt.Sprintf(" %18s ", sensor.ReasonName[result.Outcome]), false)
 	printLine(display, 2, fmt.Sprintf("Dp diff:%5.1fC (%3.1f)",
 		sensorInside.DewPoint-sensorOutside.DewPoint, fanConfig.MinDiff+fanConfig.Hysteresis), false)
 	printLine(display, 3, fmt.Sprintf("In/Out:  %4ds %4ds", insideLastSeen, outsideLastSeen), false)
