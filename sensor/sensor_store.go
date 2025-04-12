@@ -12,12 +12,20 @@ type SensorStore struct {
 	Outside SensorDataList
 }
 
-// MaxSensorData represents the maximum number of SensorData entries allowed.
-const MaxSensorData = 20
+func NewSensorDataStore(maxData int) *SensorDataList {
+	if maxData < 1 {
+		// Ensure a valid maximum value; fallback to 1 if invalid input is provided.
+		maxData = 1
+	}
+	return &SensorDataList{
+		data:          []SensorData{},
+		maxSensorData: maxData,
+	}
+}
 
 // AddSensorData adds a new SensorData to the store. It removes the oldest entry if the limit is exceeded.
 func (store *SensorDataList) AddSensorData(sensor SensorData) {
-	if len(store.data) >= MaxSensorData {
+	if len(store.data) >= store.maxSensorData {
 		// If the list exceeds the limit, remove the oldest entry
 		store.data = store.data[1:]
 	}

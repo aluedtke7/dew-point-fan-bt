@@ -16,12 +16,17 @@ import (
 	bt "tinygo.org/x/bluetooth"
 )
 
+const maxSensorData = 20
+
 var (
-	lg              = logger.NewPackageLogger("main", logger.InfoLevel)
-	fanConfig       = sensor.FanConfig{}
-	resultData      = sensor.ResultData{}
-	sensors         = sensor.Sensors{}
-	sensorStore     = sensor.SensorStore{}
+	lg          = logger.NewPackageLogger("main", logger.InfoLevel)
+	fanConfig   = sensor.FanConfig{}
+	resultData  = sensor.ResultData{}
+	sensors     = sensor.Sensors{}
+	sensorStore = sensor.SensorStore{
+		Inside:  *sensor.NewSensorDataStore(maxSensorData),
+		Outside: *sensor.NewSensorDataStore(maxSensorData),
+	}
 	disp            display.Display
 	ioPins          gpio.Gpio
 	lcdDelay        int
@@ -30,6 +35,7 @@ var (
 	ipAddress       string
 )
 
+// main is the entry point of the application. It initializes configurations, hardware, and services, and manages app lifecycle.
 func main() {
 	defer func() {
 		_ = logger.FinalizeLogger()
@@ -73,54 +79,9 @@ func main() {
 		os.Exit(1)
 	}()
 
-	go func() {
-		// Create a ticker to trigger events every 'lcdScreenChange' seconds
-		ticker := time.NewTicker(time.Duration(lcdScreenChange) * time.Second)
-		defer ticker.Stop()
-		step := 0
-		toggler := false
-		// Loop to handle toggling and communication through channels
-		for {
-			ioPins.SetFan(toggler)
-			toggler = !toggler
-			lg.Infof("Sense Pin is %t", ioPins.ReadFanSense())
-			computeResults(sensors.InsideData, sensors.OutsideData, &resultData)
-			select {
-			case <-ticker.C:
-				switch step {
-				case 0, 3, 6:
-					display.MainScreen(disp, sensors.InsideData, sensors.OutsideData)
-				case 1, 4, 7:
-					display.ResultScreen(disp, resultData, sensors.InsideData, sensors.OutsideData, fanConfig)
-				case 2, 5:
-					display.InfoScreen(disp, sensors.InsideData, sensors.OutsideData)
-				case 8:
-					display.StartScreen(disp, ipAddress)
-				}
-				step += 1
-				if step > 8 {
-					step = 0
-				}
-			}
-		}
-	}()
+	go showScreens()
 
-	go func() {
-		// Create a ticker to trigger events every 'lcdScreenChange' seconds
-		ticker := time.NewTicker(time.Minute)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				lg.Infof("Sending average values to InfluxDB: %d, %d",
-					sensorStore.Inside.Size(), sensorStore.Outside.Size())
-				lg.Infof("Inside  (T/H): %5.1fC - %5.1f%%", sensorStore.Inside.AverageTemperature(),
-					sensorStore.Inside.AverageHumidity())
-				lg.Infof("Outside (T/H): %5.1fC - %5.1f%%", sensorStore.Outside.AverageTemperature(),
-					sensorStore.Outside.AverageHumidity())
-			}
-		}
-	}()
+	go sendToInfluxDb()
 
 	err = adapter.Scan(onScan)
 	if err != nil {
