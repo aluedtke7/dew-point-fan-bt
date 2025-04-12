@@ -8,6 +8,7 @@ require (
 	github.com/d2r2/go-logger v0.0.0-20210606094344-60e9d1233e22
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/spf13/viper v1.20.0
+	periph.io/x/conn/v3 v3.7.2
 	tinygo.org/x/bluetooth v0.11.0
 )
 
@@ -36,4 +37,5 @@ require (
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	periph.io/x/host/v3 v3.8.4 // indirect
 )
