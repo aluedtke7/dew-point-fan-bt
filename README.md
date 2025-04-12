@@ -3,7 +3,7 @@ Dew Point Fan - Bluetooth version
 # Todo's
 - ~~Fake Implementierung von display.Display (wg. Test auf macOS)~~
 - ~~Auswertung der Taupunkte inkl. Reason~~
-- GPIO Pins für Input/Output verarbeiten, inkl. Fake Variante für Desktop OS
+- ~~GPIO Pins für Input/Output verarbeiten, inkl. Fake Variante für Desktop OS~~
 - Anbindung InfluxDB (neuen Bereich einrichten)
 - Mittelwertbildung und Senden an InfluxDB 1-mal pro Minute
 - Web-Server implementieren

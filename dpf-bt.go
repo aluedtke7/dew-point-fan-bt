@@ -77,8 +77,12 @@ func main() {
 		ticker := time.NewTicker(time.Duration(lcdScreenChange) * time.Second)
 		defer ticker.Stop()
 		step := 0
+		toggler := false
 		// Loop to handle toggling and communication through channels
 		for {
+			ioPins.SetFan(toggler)
+			toggler = !toggler
+			lg.Infof("Sense Pin is %t", ioPins.ReadFanSense())
 			computeResults(sensors.InsideData, sensors.OutsideData, &resultData)
 			select {
 			case <-ticker.C:

@@ -1,23 +1,32 @@
+//go:build linux && arm
+
 package gpio
 
 import (
-	"periph.io/x/conn/v3/gpio"
+	"errors"
+	"github.com/d2r2/go-logger"
+	gp "periph.io/x/conn/v3/gpio"
 	"periph.io/x/conn/v3/gpio/gpioreg"
+	"periph.io/x/host/v3"
 )
 
 var lgGpio = logger.NewPackageLogger("gpio", logger.InfoLevel)
 
 type gpioData struct {
-	sensePin gpio.PinIO
-	fanPin   gpio.PinIO
+	sensePin gp.PinIO
+	fanPin   gp.PinIO
 }
 
 func (g gpioData) ReadFanSense() bool {
-	return sensePin.Read()
+	return g.sensePin.Read() == gp.High
 }
 
 func (g gpioData) SetFan(on bool) {
-	fanPin.Out(on)
+	if on {
+		_ = g.fanPin.Out(gp.High)
+	} else {
+		_ = g.fanPin.Out(gp.Low)
+	}
 }
 
 func New() (_ Gpio, err error) {
@@ -31,19 +40,16 @@ func New() (_ Gpio, err error) {
 	}
 	if gpio.sensePin == nil || gpio.fanPin == nil {
 		lgGpio.Error("GPIO pins not found")
-		return nil, error(
-			"GPIO pins not found",
-			"GPIO22", gpio.sensePin,
-			"GPIO25", gpio.fanPin)
+		return nil, errors.New("GPIO pins not found")
 	}
-	err = gpio.sensePin.In(gpio.Float, gpio.NoEdge)
+	err = gpio.sensePin.In(gp.Float, gp.NoEdge)
 	if err != nil {
-		lgGpio.Error(err.Error("Pin22 could not be configured as floating input"))
+		lgGpio.Error("Pin22 could not be configured as floating input")
 		return nil, err
 	}
-	err = gpio.fanPin.Out(gpio.High)
+	err = gpio.fanPin.Out(gp.High)
 	if err != nil {
-		lgGpio.Error(err.Error("Pin25 could not be configured as output"))
+		lgGpio.Error("Pin25 could not be configured as output")
 		return nil, err
 	}
 

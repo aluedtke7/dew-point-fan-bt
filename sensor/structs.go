@@ -42,9 +42,9 @@ var ReasonName = map[Reason]string{
 	ReasonNoEnoughData:         "not enough data",
 	ReasonDewPointOverHyst:     "dp > hysteresis",
 	ReasonDewPointUnderHyst:    "dp < hysteresis",
-	ReasonInsideTempTooLow:     "in temp too low",
-	ReasonOutsideTempTooLow:    "out temp too low",
-	ReasonInsideHumidityTooLow: "in hum too low",
+	ReasonInsideTempTooLow:     "inside temp too low",
+	ReasonOutsideTempTooLow:    "outside temp too low",
+	ReasonInsideHumidityTooLow: "inside hum too low",
 }
 
 const (
