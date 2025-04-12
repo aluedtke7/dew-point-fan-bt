@@ -18,15 +18,19 @@ var lg = logger.NewPackageLogger("bt", logger.InfoLevel)
 // ProcessAdvertisement processes the Bluetooth advertisement payload to extract sensor data and update the
 // Sensors object. It determines whether the data belongs to the inside or outside sensor and logs the
 // sensor's details if valid.
-func ProcessAdvertisement(scanResult bt.ScanResult, sensors *sensor.Sensors) {
+func ProcessAdvertisement(scanResult bt.ScanResult,
+	sensors *sensor.Sensors,
+	sensorStore *sensor.SensorStore) {
 	payload := scanResult.AdvertisementPayload.ManufacturerData()[0].Data
 	if len(payload) == 18 {
 		sensorData := parseWS02Data(payload, scanResult.RSSI, *sensors)
 		if sensorData.Name != "" {
 			if sensorData.Name == "Inside" {
 				sensors.InsideData = *sensorData
+				sensorStore.Inside.AddSensorData(*sensorData)
 			} else {
 				sensors.OutsideData = *sensorData
+				sensorStore.Outside.AddSensorData(*sensorData)
 			}
 			lg.Infof("%8s Temp: %.1f°C - Hum: %.1f%% - Bat: %d - RSSI: %d - Uptime: %s",
 				sensorData.Name, sensorData.Temperature, sensorData.Humidity, sensorData.BatLevel,

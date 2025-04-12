@@ -2,7 +2,9 @@
 
 package gpio
 
-var lgTerm = logger.NewPackageLogger("gpio", logger.InfoLevel)
+import "github.com/d2r2/go-logger"
+
+var lgGp = logger.NewPackageLogger("gpio", logger.InfoLevel)
 
 type gpioDummyData struct {
 	fanState bool
@@ -14,7 +16,7 @@ func (g gpioDummyData) ReadFanSense() bool {
 
 func (g gpioDummyData) SetFan(on bool) {
 	if on != g.fanState {
-		lg.infof("Switching Fan to %v", on)
+		lgGp.Infof("Switching Fan to %v", on)
 	}
 	g.fanState = on
 }
