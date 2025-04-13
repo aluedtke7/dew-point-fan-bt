@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 type sensorData struct {
@@ -28,7 +29,7 @@ type remoteControl struct {
 	Override int `json:"override"`
 }
 
-var remoteOverride int = 0
+var remoteOverride = 0
 
 func startWebserver() {
 	// a little http server to show current values
@@ -45,8 +46,9 @@ func startWebserver() {
 		webHandler := func(w http.ResponseWriter, req *http.Request) {
 			_, _ = fmt.Fprintf(w, "Dew Point Fan\n"+
 				"-----------------------------------------------------\n"+
-				"Inside:  DP: %6.1f, Temp: %5.1f°C, Humidity: %5.1f%%\n"+
-				"Outside: DP: %6.1f, Temp: %5.1f°C, Humidity: %5.1f%%\n"+
+				"Inside   DP: %6.1f, Temp: %5.1f°C, Humidity: %5.1f%%\n"+
+				"Outside  DP: %6.1f, Temp: %5.1f°C, Humidity: %5.1f%%\n"+
+				"Diff     DP: %6.1f\n"+
 				"Fan should be %s                         Fan is %s",
 				sensorStore.Inside.AverageDewPoint(),
 				sensorStore.Inside.AverageTemperature(),
@@ -54,6 +56,7 @@ func startWebserver() {
 				sensorStore.Outside.AverageDewPoint(),
 				sensorStore.Outside.AverageTemperature(),
 				sensorStore.Outside.AverageHumidity(),
+				sensorStore.Inside.AverageDewPoint()-sensorStore.Outside.AverageDewPoint(),
 				shouldBeOn, isOn,
 			)
 		}
@@ -63,7 +66,7 @@ func startWebserver() {
 		infoHandler := func(w http.ResponseWriter, req *http.Request) {
 			if req.Method == "GET" {
 				inf := new(info)
-				inf.Update = ""
+				inf.Update = time.Now().Format(time.DateTime)
 				inf.Sensors = []sensorData{
 					{"Inside",
 						sensorStore.Inside.AverageTemperature(),
