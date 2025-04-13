@@ -4,9 +4,9 @@ Dew Point Fan - Bluetooth version
 - ~~Fake Implementierung von display.Display (wg. Test auf macOS)~~
 - ~~Auswertung der Taupunkte inkl. Reason~~
 - ~~GPIO Pins für Input/Output verarbeiten, inkl. Fake Variante für Desktop OS~~
-- Anbindung InfluxDB (neuen Bereich einrichten)
-- Mittelwertbildung und Senden an InfluxDB 1-mal pro Minute
-- Web-Server implementieren
+- ~~Anbindung InfluxDB (neuen Bereich einrichten)~~
+- ~~Mittelwertbildung und Senden an InfluxDB 1-mal pro Minute~~
+- ~~Web-Server implementieren~~
 
 
 ## Setup Raspberry PI
@@ -27,4 +27,10 @@ The output should typically show a device on address 27.
 
     GOOS=linux GOARCH=arm GOARM=7 go build -o dpf-bt
     scp dpf-bt pi@dpf-bt.fritz.box:/home/pi
+
+## Screenshots and photos
+Fritzing schematic:
+<p float="left">
+    <img src="./images/board.png" title="Schematic" width="90%">
+</p>
 
