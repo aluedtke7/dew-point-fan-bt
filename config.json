@@ -10,8 +10,8 @@
     "humidity-calibration": -0.38
   },
   "influx": {
-    "url": "",
-    "token": "",
+    "url": "http://<IP-ADR-OF-INFLUXDB>:8086",
+    "token": "FJGK.....",
     "org": "private",
     "bucket": "dpf-bt"
   },

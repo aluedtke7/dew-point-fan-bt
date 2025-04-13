@@ -64,3 +64,10 @@ type ResultData struct {
 	IsOn       bool
 	Outcome    Reason
 }
+
+type InfluxDbConfig struct {
+	Url    string
+	Token  string
+	Org    string
+	Bucket string
+}
