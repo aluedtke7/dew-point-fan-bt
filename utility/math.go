@@ -2,11 +2,10 @@ package utility
 
 import "math"
 
-// CalcDewPoint calculates the dew point temperature (°C) based on given temperature (°C) and relative humidity (%).
+// CalcDewPoint calculates the dew point temperature (°C) based on the given temperature (°C) and relative humidity (%).
 // It uses the Magnus formula with coefficients adjusted for temperature above or below 0°C.
 // Returns the calculated dew point temperature as a float64.
 func CalcDewPoint(temperature, humidity float64) float64 {
-
 	var a, b float64
 
 	if temperature >= 0 {
@@ -28,4 +27,10 @@ func CalcDewPoint(temperature, humidity float64) float64 {
 
 	// dew point temperature (°C)
 	return (b * v) / (a - v)
+}
+
+// RoundDouble rounds a float64 value to the specified number of decimal places based on the given precision.
+func RoundDouble(val float64, precision uint) float64 {
+	ratio := math.Pow(10, float64(precision))
+	return math.Round(val*ratio) / ratio
 }

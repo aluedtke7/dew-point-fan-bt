@@ -10,6 +10,7 @@
     "humidity-calibration": -0.38
   },
   "influx": {
+    "enabled": false,
     "url": "http://<IP-ADR-OF-INFLUXDB>:8086",
     "token": "FJGK.....",
     "org": "private",

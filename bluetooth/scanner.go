@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/d2r2/go-logger"
-	"math"
 	"slices"
 	"strings"
 	"time"
@@ -89,8 +88,8 @@ func parseWS02Data(payload []byte, rssi int16, sensors sensor.Sensors) *sensor.S
 	}
 	humidity := humidityRaw + humCal
 
-	roundedTemperature := roundDouble(temperature, 1)
-	roundedHumidity := roundDouble(humidity, 1)
+	roundedTemperature := utility.RoundDouble(temperature, 1)
+	roundedHumidity := utility.RoundDouble(humidity, 1)
 
 	return &sensor.SensorData{
 		MacAddress:  macAdr,
@@ -100,15 +99,9 @@ func parseWS02Data(payload []byte, rssi int16, sensors sensor.Sensors) *sensor.S
 		Uptime:      uptime,
 		Temperature: roundedTemperature,
 		Humidity:    roundedHumidity,
-		DewPoint:    roundDouble(utility.CalcDewPoint(roundedTemperature, roundedHumidity), 1),
+		DewPoint:    utility.RoundDouble(utility.CalcDewPoint(roundedTemperature, roundedHumidity), 1),
 		Scanned:     time.Now(),
 	}
-}
-
-// round Double to N digits precision
-func roundDouble(val float64, precision uint) float64 {
-	ratio := math.Pow(10, float64(precision))
-	return math.Round(val*ratio) / ratio
 }
 
 // formatUptime converts uptime in seconds to a human-readable format as a string in the form "Xd Yh Zm".

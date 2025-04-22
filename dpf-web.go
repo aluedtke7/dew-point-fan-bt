@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// sensorData represents the data collected from a sensor, including its name, temperature, humidity, and dew point.
 type sensorData struct {
 	Name        string  `json:"name"`
 	Temperature float64 `json:"temperature"`
@@ -15,6 +16,7 @@ type sensorData struct {
 	DewPoint    float64 `json:"dew_point"`
 }
 
+// info represents the main structure for current system data, including sensor readings and fan control states.
 type info struct {
 	Update         string       `json:"update"`
 	Sensors        []sensorData `json:"sensors"`
@@ -25,14 +27,16 @@ type info struct {
 	Hysteresis     float64      `json:"hysteresis"`
 }
 
+// remoteControl represents the structure for managing remote override control for the fan system.
+// Override defines the override state, where the fan is forced to a specific state through external input.
 type remoteControl struct {
 	Override int `json:"override"`
 }
 
 var remoteOverride = 0
 
+// startWebserver initializes and starts a web server to display sensor data and control fan settings interactively.
 func startWebserver() {
-	// a little http server to show current values
 	go func() {
 		shouldBeOn := "OFF"
 		if resultData.ShouldBeOn {
@@ -42,7 +46,7 @@ func startWebserver() {
 		if resultData.IsOn {
 			isOn = "ON"
 		}
-		// browser page plain text
+		// plain text browser page
 		webHandler := func(w http.ResponseWriter, req *http.Request) {
 			_, _ = fmt.Fprintf(w, "Dew Point Fan\n"+
 				"-----------------------------------------------------\n"+
@@ -90,7 +94,7 @@ func startWebserver() {
 		}
 		http.HandleFunc("/info", infoHandler)
 
-		// POST handler for changing fanIsOn
+		// POST handler for changing/overriding fan state
 		overrideHandler := func(w http.ResponseWriter, req *http.Request) {
 			if req.Method == "POST" {
 				lg.Info("POST API called")

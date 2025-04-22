@@ -1,5 +1,7 @@
 package sensor
 
+import "dpf-bt/utility"
+
 // SensorDataList struct manages a list of up to 20 SensorData entries.
 type SensorDataList struct {
 	data          []SensorData
@@ -47,7 +49,7 @@ func (store *SensorDataList) AverageTemperature() float64 {
 	for _, sensor := range store.data {
 		totalTemperature += sensor.Temperature
 	}
-	return totalTemperature / float64(len(store.data))
+	return utility.RoundDouble(totalTemperature/float64(len(store.data)), 1)
 }
 
 // AverageHumidity calculates the average humidity of all SensorData entries in the store.
@@ -61,7 +63,7 @@ func (store *SensorDataList) AverageHumidity() float64 {
 	for _, sensor := range store.data {
 		totalHumidity += sensor.Humidity
 	}
-	return totalHumidity / float64(len(store.data))
+	return utility.RoundDouble(totalHumidity/float64(len(store.data)), 1)
 }
 
 // AverageDewPoint calculates the average dew point of all SensorData in the store.
@@ -75,7 +77,7 @@ func (store *SensorDataList) AverageDewPoint() float64 {
 	for _, sensor := range store.data {
 		totalDewPoint += sensor.DewPoint
 	}
-	return totalDewPoint / float64(len(store.data))
+	return utility.RoundDouble(totalDewPoint/float64(len(store.data)), 1)
 }
 
 func (store *SensorDataList) Size() int {

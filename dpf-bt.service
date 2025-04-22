@@ -1,0 +1,9 @@
+[Unit]
+Description=Dew point fan bluetooth application
+After=default.target
+
+[Service]
+ExecStart=/home/pi/dpf-bt/start-dpf-bt.sh
+
+[Install]
+WantedBy=multi-user.target

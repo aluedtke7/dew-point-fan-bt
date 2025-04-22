@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 	bt "tinygo.org/x/bluetooth"
@@ -36,14 +37,20 @@ var (
 	ipAddress       string
 )
 
-// main is the entry point of the application. It initializes configurations, hardware, and services, and manages app lifecycle.
+// The main function is the entry point of the application. It initializes configurations, hardware, and
+// services and manages the app lifecycle.
 func main() {
 	defer func() {
 		_ = logger.FinalizeLogger()
 	}()
-	viper.SetConfigName("config-private")
+	pathOfBinary, err := os.Executable()
+	if err != nil {
+		lg.Errorf("Couldn't get path of executable: %s", err)
+		return
+	}
+	viper.SetConfigName("config")
 	viper.SetConfigType("json")
-	viper.AddConfigPath(".")
+	viper.AddConfigPath(filepath.Dir(pathOfBinary))
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		lg.Info("Config file changed:", e.Name)
 		readConfig()
@@ -52,7 +59,7 @@ func main() {
 	readConfig()
 
 	adapter := bt.DefaultAdapter
-	err := adapter.Enable()
+	err = adapter.Enable()
 	if err != nil {
 		lg.Panic("failed to enable BLE adapter")
 	}
@@ -82,7 +89,9 @@ func main() {
 
 	go showScreens()
 	go startWebserver()
-	// go sendToInfluxDb()
+	if influxConfig.Enabled {
+		go sendToInfluxDb()
+	}
 
 	err = adapter.Scan(onScan)
 	if err != nil {
@@ -129,11 +138,16 @@ func computeResults(inside sensor.SensorData, outside sensor.SensorData, resultD
 		resultData.Outcome = sensor.ReasonDewPointUnderHyst
 		return
 	}
-	if deltaDp > fanConfig.MinDiff+fanConfig.Hysteresis {
+	if deltaDp >= fanConfig.MinDiff+fanConfig.Hysteresis {
 		resultData.ShouldBeOn = true
 		resultData.Outcome = sensor.ReasonDewPointOverHyst
 		return
 	}
+	if deltaDp >= fanConfig.MinDiff && deltaDp < fanConfig.MinDiff+fanConfig.Hysteresis {
+		// we don't change the fan state since we don't know if the dew point is rising or falling
+		resultData.Outcome = sensor.ReasonDewPointInBetween
+		return
+	}
 	resultData.ShouldBeOn = false
-	resultData.Outcome = sensor.ReasonDewPointUnderHyst
+	resultData.Outcome = sensor.ReasonUnknown
 }

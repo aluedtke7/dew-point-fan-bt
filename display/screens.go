@@ -17,13 +17,6 @@ func printLine(disp Display, line int, text string, scroll bool) {
 	}
 }
 
-// formatUptime converts uptime from seconds into a human-readable format of days and hours.
-// func formatUptime(seconds uint32) string {
-// 	days := seconds / (24 * 3600)
-// 	hours := (seconds % (24 * 3600)) / 3600
-// 	return fmt.Sprintf("%dd %dh", days, hours)
-// }
-
 // formatUpDays converts a given time in seconds to a string representing the number of full days.
 func formatUpDays(seconds uint32) string {
 	days := seconds / (24 * 3600)

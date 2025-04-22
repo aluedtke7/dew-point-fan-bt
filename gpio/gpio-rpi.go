@@ -18,14 +18,16 @@ type gpioData struct {
 }
 
 func (g gpioData) ReadFanSense() bool {
-	return g.sensePin.Read() == gp.High
+	// the relay is active low, so we need to toggle it to get the right value
+	return g.sensePin.Read() == !gp.High
 }
 
 func (g gpioData) SetFan(on bool) {
+	// the relay is active low, so we need to toggle it to turn it on/off
 	if on {
-		_ = g.fanPin.Out(gp.High)
-	} else {
 		_ = g.fanPin.Out(gp.Low)
+	} else {
+		_ = g.fanPin.Out(gp.High)
 	}
 }
 
