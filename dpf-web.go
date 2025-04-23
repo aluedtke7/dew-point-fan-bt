@@ -20,6 +20,7 @@ type sensorData struct {
 type info struct {
 	Update         string       `json:"update"`
 	Sensors        []sensorData `json:"sensors"`
+	Reason         int          `json:"reason"`
 	Venting        bool         `json:"venting"`
 	Override       bool         `json:"override"`
 	RemoteOverride int          `json:"remote_override"`
@@ -83,6 +84,7 @@ func startWebserver() {
 						sensorStore.Outside.AverageDewPoint(),
 					},
 				}
+				inf.Reason = int(resultData.Outcome)
 				inf.Venting = resultData.ShouldBeOn
 				inf.Override = resultData.ShouldBeOn != resultData.IsOn
 				inf.RemoteOverride = remoteOverride
@@ -110,6 +112,6 @@ func startWebserver() {
 			}
 		}
 		http.HandleFunc("/override", overrideHandler)
-		log.Fatal(http.ListenAndServe(":8080", nil))
+		log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
 	}()
 }
