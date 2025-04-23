@@ -26,7 +26,7 @@ func showScreens() {
 				case 2, 5:
 					display.InfoScreen(disp, sensors.InsideData, sensors.OutsideData)
 				case 8:
-					display.StartScreen(disp, ipAddress)
+					display.StartScreen(disp, buildTime, ipAddress)
 				}
 				step += 1
 				if step > 8 {

@@ -20,6 +20,7 @@ import (
 const maxSensorData = 20
 
 var (
+	buildTime    = "---"
 	lg           = logger.NewPackageLogger("main", logger.InfoLevel)
 	fanConfig    = sensor.FanConfig{}
 	influxConfig = sensor.InfluxDbConfig{}
@@ -57,6 +58,7 @@ func main() {
 	})
 	viper.WatchConfig()
 	readConfig()
+	lg.Infof("Build timestamp: %s", buildTime)
 
 	adapter := bt.DefaultAdapter
 	err = adapter.Enable()
@@ -70,7 +72,7 @@ func main() {
 	} else {
 		disp.Backlight(true)
 		ipAddress = utility.LogNetworkInterfacesAndGetIpAdr()
-		display.StartScreen(disp, ipAddress)
+		display.StartScreen(disp, buildTime, ipAddress)
 	}
 	ioPins, err = gpio.New()
 	if err != nil {

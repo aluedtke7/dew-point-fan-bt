@@ -24,9 +24,9 @@ func formatUpDays(seconds uint32) string {
 }
 
 // StartScreen initializes the display with a startup message and the provided IP address.
-func StartScreen(display Display, ip string) {
+func StartScreen(display Display, buildTime string, ip string) {
 	printLine(display, 0, "DewPointFan BT v1", false)
-	printLine(display, 1, "", false)
+	printLine(display, 1, buildTime, false)
 	printLine(display, 2, "", false)
 	printLine(display, 3, "IP: "+ip, false)
 }
