@@ -21,11 +21,14 @@ With this app, the override of the fan state can be changed too (but the hardwar
 The app is started as a Systemd service. [See below for details](#install-app-as-a-service).
 
 All configuration is done via the `config.json` file that should be located beside the binary. Please enter the
-necessary values according to your needs.
+necessary values according to your needs. The MAC address of the bluetooth sensors must be set to scan for
+the right sensors if there are other sensors. This address can be found with the help of the **Sensor Blue**
+app ([Google Play Store](https://play.google.com/store/apps/details?id=com.beyondtel.sensorblue&hl=de),
+[Apple App Store](https://apps.apple.com/de/app/sensorblue/id1480793901)).
 
 The program uses build constraints to enable the execution on the Raspberry Pi and on the
-development machine. Therefore, two interfaces (`Display` and `Gpio`) have been created and there
-are two implementations of these interfaces.
+development machine. Therefore, two interfaces for the hardware-related packages (`Display` and `Gpio`) have been 
+created and there are two implementations each.
 
 ## Schematic
 Fritzing schematic:

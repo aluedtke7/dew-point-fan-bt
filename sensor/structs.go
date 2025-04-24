@@ -69,6 +69,12 @@ const (
 	// ReasonInsideHumidityTooLow indicates the inside humidity is too low.
 	ReasonInsideHumidityTooLow
 
+	// ReasonSoftOverrideOn indicates a state where an override is set to 'on' via REST api.
+	ReasonSoftOverrideOn
+
+	// ReasonSoftOverrideOff indicates a state where an override is set to 'off' via REST API.
+	ReasonSoftOverrideOff
+
 	// ReasonUnknown indicates an undefined or unknown reason.
 	ReasonUnknown
 )
@@ -84,6 +90,8 @@ var ReasonName = map[Reason]string{
 	ReasonInsideTempTooLow:     "inside temp too low",
 	ReasonOutsideTempTooLow:    "outside temp too low",
 	ReasonInsideHumidityTooLow: "inside hum too low",
+	ReasonSoftOverrideOn:       "soft override on",
+	ReasonSoftOverrideOff:      "soft override off",
 	ReasonUnknown:              "unknown reason",
 }
 
@@ -92,7 +100,7 @@ type ResultData struct {
 	DpDiff     float64
 	ShouldBeOn bool
 	IsOn       bool
-	Outcome    Reason
+	Reason     Reason
 }
 
 // InfluxDbConfig represents the configuration settings for connecting to an InfluxDB instance.

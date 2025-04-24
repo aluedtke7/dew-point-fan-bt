@@ -36,6 +36,7 @@ var (
 	lcdScrollSpeed  int
 	lcdScreenChange int
 	ipAddress       string
+	remoteOverride  = 0
 )
 
 // The main function is the entry point of the application. It initializes configurations, hardware, and
@@ -108,48 +109,59 @@ func onScan(_ *bt.Adapter, scanResult bt.ScanResult) {
 }
 
 func computeResults(inside sensor.SensorData, outside sensor.SensorData, resultData *sensor.ResultData) {
+	if remoteOverride > 0 {
+		// manual override via REST api
+		if remoteOverride == 1 {
+			resultData.ShouldBeOn = true
+			resultData.Reason = sensor.ReasonSoftOverrideOn
+		} else {
+			resultData.ShouldBeOn = false
+			resultData.Reason = sensor.ReasonSoftOverrideOff
+		}
+		return
+	}
 	if inside.Scanned.IsZero() || outside.Scanned.IsZero() {
 		resultData.ShouldBeOn = false
-		resultData.Outcome = sensor.ReasonNoData
+		resultData.Reason = sensor.ReasonNoData
 		return
 	}
 	last5Minute := time.Now().Add(-5 * time.Minute)
 	if inside.Scanned.Before(last5Minute) || outside.Scanned.Before(last5Minute) {
 		resultData.ShouldBeOn = false
-		resultData.Outcome = sensor.ReasonNoEnoughData
+		resultData.Reason = sensor.ReasonNoEnoughData
 		return
 	}
 	if inside.Temperature < fanConfig.MinTempInside {
 		resultData.ShouldBeOn = false
-		resultData.Outcome = sensor.ReasonInsideTempTooLow
+		resultData.Reason = sensor.ReasonInsideTempTooLow
 		return
 	}
 	if outside.Temperature < fanConfig.MinTempOutside {
 		resultData.ShouldBeOn = false
-		resultData.Outcome = sensor.ReasonOutsideTempTooLow
+		resultData.Reason = sensor.ReasonOutsideTempTooLow
 		return
 	}
 	if inside.Humidity < fanConfig.MinHumidityInside {
 		resultData.ShouldBeOn = false
-		resultData.Outcome = sensor.ReasonInsideHumidityTooLow
+		resultData.Reason = sensor.ReasonInsideHumidityTooLow
 		return
 	}
 	deltaDp := inside.DewPoint - outside.DewPoint
 	if deltaDp < fanConfig.MinDiff {
 		resultData.ShouldBeOn = false
-		resultData.Outcome = sensor.ReasonDewPointUnderHyst
+		resultData.Reason = sensor.ReasonDewPointUnderHyst
 		return
 	}
 	if deltaDp >= fanConfig.MinDiff+fanConfig.Hysteresis {
 		resultData.ShouldBeOn = true
-		resultData.Outcome = sensor.ReasonDewPointOverHyst
+		resultData.Reason = sensor.ReasonDewPointOverHyst
 		return
 	}
 	if deltaDp >= fanConfig.MinDiff && deltaDp < fanConfig.MinDiff+fanConfig.Hysteresis {
 		// we don't change the fan state since we don't know if the dew point is rising or falling
-		resultData.Outcome = sensor.ReasonDewPointInBetween
+		resultData.Reason = sensor.ReasonDewPointInBetween
 		return
 	}
 	resultData.ShouldBeOn = false
-	resultData.Outcome = sensor.ReasonUnknown
+	resultData.Reason = sensor.ReasonUnknown
 }

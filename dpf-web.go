@@ -34,8 +34,6 @@ type remoteControl struct {
 	Override int `json:"override"`
 }
 
-var remoteOverride = 0
-
 // startWebserver initializes and starts a web server to display sensor data and control fan settings interactively.
 func startWebserver() {
 	go func() {
@@ -84,7 +82,7 @@ func startWebserver() {
 						sensorStore.Outside.AverageDewPoint(),
 					},
 				}
-				inf.Reason = int(resultData.Outcome)
+				inf.Reason = int(resultData.Reason)
 				inf.Venting = resultData.ShouldBeOn
 				inf.Override = resultData.ShouldBeOn != resultData.IsOn
 				inf.RemoteOverride = remoteOverride
@@ -106,6 +104,7 @@ func startWebserver() {
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
+				lg.Infof("POST API called with override: %d", remote.Override)
 				remoteOverride = remote.Override
 				j, _ := json.MarshalIndent(remote, "", "  ")
 				_, _ = w.Write(j)
