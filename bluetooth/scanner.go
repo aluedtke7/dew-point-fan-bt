@@ -39,14 +39,14 @@ func ProcessAdvertisement(scanResult bt.ScanResult,
 }
 
 // parseWS02Data parses WS02 sensor advertisement payload to extract sensor data including temperature,
-// humidity, signal strength and uptime.
+// humidity, signal strength, and uptime.
 // It also calculates calibrated values using sensor-specific offsets and formats the identifier and name
 // of the sensor. The input includes the raw payload, RSSI, and a sensor calibration object, and the function
 // returns structured sensor data.
 func parseWS02Data(payload []byte, rssi int16, sensors sensor.Sensors) *sensor.SensorData {
 	// The WS02 advertisement contains temperature and humidity in specific locations.
-	// The mac address starts at offset 2 and the 16-bit value of the battery level starts at offset 8.
-	// The temperature is a 16-bit value starting at offset 10 and humidity is a 16-bit value starting at offset 12.
+	// The mac address starts at offset 2, and the 16-bit value of the battery level starts at offset 8.
+	// The temperature is a 16-bit value starting at offset 10, and humidity is a 16-bit value starting at offset 12.
 	// The uptime in seconds since the last reset is a 32-bit value starting at offset 14.
 	const macOffset = 2
 	const batOffset = 8
@@ -99,7 +99,7 @@ func parseWS02Data(payload []byte, rssi int16, sensors sensor.Sensors) *sensor.S
 		Uptime:      uptime,
 		Temperature: roundedTemperature,
 		Humidity:    roundedHumidity,
-		DewPoint:    utility.RoundDouble(utility.CalcDewPoint(roundedTemperature, roundedHumidity), 1),
+		DewPoint:    utility.CalcDewPoint(roundedTemperature, roundedHumidity),
 		Scanned:     time.Now(),
 	}
 }

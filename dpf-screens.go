@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// showScreens manages the periodic display of different screens on an LCD, using sensor data and fan status.
+// It cycles through multiple screen types, including main, results, and info, based on a timed sequence.
 func showScreens() {
 	func() {
 		// Create a ticker to trigger events every 'lcdScreenChange' seconds

@@ -26,7 +26,7 @@ func CalcDewPoint(temperature, humidity float64) float64 {
 	v := math.Log10(dd / 6.1078)
 
 	// dew point temperature (°C)
-	return (b * v) / (a - v)
+	return RoundDouble((b*v)/(a-v), 1)
 }
 
 // RoundDouble rounds a float64 value to the specified number of decimal places based on the given precision.

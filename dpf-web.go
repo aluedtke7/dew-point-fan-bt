@@ -1,10 +1,12 @@
 package main
 
 import (
+	"dpf-bt/sensor"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/d2r2/go-logger"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -34,83 +36,133 @@ type remoteControl struct {
 	Override int `json:"override"`
 }
 
+const (
+	webServerPort = ":8080"
+	webServerHost = "0.0.0.0"
+)
+
+type webServer struct {
+	sensorStore    *sensor.SensorStore
+	resultData     *sensor.ResultData
+	fanConfig      *sensor.FanConfig
+	remoteOverride *int
+}
+
+var lgWeb = logger.NewPackageLogger("web", logger.InfoLevel)
+
 // startWebserver initializes and starts a web server to display sensor data and control fan settings interactively.
 func startWebserver() {
+	srv := &webServer{
+		sensorStore:    &sensorStore,
+		resultData:     &resultData,
+		fanConfig:      &fanConfig,
+		remoteOverride: &remoteOverride,
+	}
+
 	go func() {
-		shouldBeOn := "OFF"
-		if resultData.ShouldBeOn {
-			shouldBeOn = "ON"
-		}
-		isOn := "OFF"
-		if resultData.IsOn {
-			isOn = "ON"
-		}
-		// plain text browser page
-		webHandler := func(w http.ResponseWriter, req *http.Request) {
-			_, _ = fmt.Fprintf(w, "Dew Point Fan\n"+
-				"-----------------------------------------------------\n"+
-				"Inside   DP: %6.1f, Temp: %5.1f°C, Humidity: %5.1f%%\n"+
-				"Outside  DP: %6.1f, Temp: %5.1f°C, Humidity: %5.1f%%\n"+
-				"Diff     DP: %6.1f\n"+
-				"Fan should be %s                         Fan is %s",
-				sensorStore.Inside.AverageDewPoint(),
-				sensorStore.Inside.AverageTemperature(),
-				sensorStore.Inside.AverageHumidity(),
-				sensorStore.Outside.AverageDewPoint(),
-				sensorStore.Outside.AverageTemperature(),
-				sensorStore.Outside.AverageHumidity(),
-				sensorStore.Inside.AverageDewPoint()-sensorStore.Outside.AverageDewPoint(),
-				shouldBeOn, isOn,
-			)
-		}
-		http.HandleFunc("/", webHandler)
+		http.HandleFunc("/", srv.handleMainPage)
+		http.HandleFunc("/info", srv.handleInfo)
+		http.HandleFunc("/override", srv.handleOverride)
 
-		// data in JSON format
-		infoHandler := func(w http.ResponseWriter, req *http.Request) {
-			if req.Method == "GET" {
-				inf := new(info)
-				inf.Update = time.Now().Format(time.DateTime)
-				inf.Sensors = []sensorData{
-					{"Inside",
-						sensorStore.Inside.AverageTemperature(),
-						sensorStore.Inside.AverageHumidity(),
-						sensorStore.Inside.AverageDewPoint(),
-					},
-					{"Outside",
-						sensorStore.Outside.AverageTemperature(),
-						sensorStore.Outside.AverageHumidity(),
-						sensorStore.Outside.AverageDewPoint(),
-					},
-				}
-				inf.Reason = int(resultData.Reason)
-				inf.Venting = resultData.ShouldBeOn
-				inf.Override = resultData.ShouldBeOn != resultData.IsOn
-				inf.RemoteOverride = remoteOverride
-				inf.DiffMin = fanConfig.MinDiff
-				inf.Hysteresis = fanConfig.Hysteresis
-				j, _ := json.MarshalIndent(inf, "", "  ")
-				_, _ = w.Write(j)
-			}
-		}
-		http.HandleFunc("/info", infoHandler)
-
-		// POST handler for changing/overriding fan state
-		overrideHandler := func(w http.ResponseWriter, req *http.Request) {
-			if req.Method == "POST" {
-				lg.Info("POST API called")
-				decoder := json.NewDecoder(req.Body)
-				remote := &remoteControl{}
-				err := decoder.Decode(remote)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-				}
-				lg.Infof("POST API called with override: %d", remote.Override)
-				remoteOverride = remote.Override
-				j, _ := json.MarshalIndent(remote, "", "  ")
-				_, _ = w.Write(j)
-			}
-		}
-		http.HandleFunc("/override", overrideHandler)
-		log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
+		lgWeb.Fatal(http.ListenAndServe(webServerHost+webServerPort, nil))
 	}()
+}
+
+func (s *webServer) handleMainPage(w http.ResponseWriter, _ *http.Request) {
+	var b strings.Builder
+
+	shouldBeOn := s.getFanStateText(s.resultData.ShouldBeOn)
+	isOn := s.getFanStateText(s.resultData.IsOn)
+	dewPointDiff := s.sensorStore.Inside.AverageDewPoint() - s.sensorStore.Outside.AverageDewPoint()
+
+	b.WriteString("Dew Point Fan\n-----------------------------------------------------\n")
+	_, _ = fmt.Fprintf(&b, "Inside   DP: %6.1f, Temp: %5.1f°C, Humidity: %5.1f%%\n",
+		s.sensorStore.Inside.AverageDewPoint(),
+		s.sensorStore.Inside.AverageTemperature(),
+		s.sensorStore.Inside.AverageHumidity())
+	_, _ = fmt.Fprintf(&b, "Outside  DP: %6.1f, Temp: %5.1f°C, Humidity: %5.1f%%\n",
+		s.sensorStore.Outside.AverageDewPoint(),
+		s.sensorStore.Outside.AverageTemperature(),
+		s.sensorStore.Outside.AverageHumidity())
+	_, _ = fmt.Fprintf(&b, "Diff     DP: %6.1f\n", dewPointDiff)
+	_, _ = fmt.Fprintf(&b, "Fan should be %s                         Fan is %s", shouldBeOn, isOn)
+
+	_, _ = fmt.Fprint(w, b.String())
+}
+
+func (s *webServer) handleInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	inf := &info{
+		Update:         time.Now().Format(time.DateTime),
+		Sensors:        s.getSensorData(),
+		Reason:         int(s.resultData.Reason),
+		Venting:        s.resultData.ShouldBeOn,
+		Override:       s.resultData.ShouldBeOn != s.resultData.IsOn,
+		RemoteOverride: *s.remoteOverride,
+		DiffMin:        s.fanConfig.MinDiff,
+		Hysteresis:     s.fanConfig.Hysteresis,
+	}
+
+	if err := s.writeJSON(w, inf); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (s *webServer) handleOverride(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	lgWeb.Info("POST API called")
+
+	var remote remoteControl
+	if err := json.NewDecoder(r.Body).Decode(&remote); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	lgWeb.Infof("POST API called with override: %d", remote.Override)
+	*s.remoteOverride = remote.Override
+
+	if err := s.writeJSON(w, remote); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (s *webServer) getSensorData() []sensorData {
+	return []sensorData{
+		{
+			Name:        "Inside",
+			Temperature: s.sensorStore.Inside.AverageTemperature(),
+			Humidity:    s.sensorStore.Inside.AverageHumidity(),
+			DewPoint:    s.sensorStore.Inside.AverageDewPoint(),
+		},
+		{
+			Name:        "Outside",
+			Temperature: s.sensorStore.Outside.AverageTemperature(),
+			Humidity:    s.sensorStore.Outside.AverageHumidity(),
+			DewPoint:    s.sensorStore.Outside.AverageDewPoint(),
+		},
+	}
+}
+
+func (s *webServer) getFanStateText(state bool) string {
+	if state {
+		return "ON"
+	}
+	return "OFF"
+}
+
+func (s *webServer) writeJSON(w http.ResponseWriter, v interface{}) error {
+	j, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(j)
+	return err
 }
