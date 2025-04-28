@@ -2,6 +2,7 @@ package main
 
 import (
 	"dpf-bt/sensor"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -13,20 +14,32 @@ func TestComputeResults(t *testing.T) {
 		outside        sensor.SensorData
 		remoteOverride int
 		fanConfig      sensor.FanConfig
-		expectedOn     bool
-		expectedReason sensor.Reason
+		expectedResult sensor.ResultData
+		lastResult     sensor.ResultData
 	}{
 		{
 			name:           "RemoteOverrideOn",
 			remoteOverride: 1,
-			expectedOn:     true,
-			expectedReason: sensor.ReasonSoftOverrideOn,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonSoftOverrideOn,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name:           "RemoteOverrideOff",
 			remoteOverride: 2,
-			expectedOn:     false,
-			expectedReason: sensor.ReasonSoftOverrideOff,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonSoftOverrideOff,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name: "NoDataInside",
@@ -36,8 +49,14 @@ func TestComputeResults(t *testing.T) {
 			outside: sensor.SensorData{
 				Scanned: time.Now(),
 			},
-			expectedOn:     false,
-			expectedReason: sensor.ReasonNoData,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonNoData,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name: "NoDataOutside",
@@ -47,8 +66,14 @@ func TestComputeResults(t *testing.T) {
 			outside: sensor.SensorData{
 				Scanned: time.Time{},
 			},
-			expectedOn:     false,
-			expectedReason: sensor.ReasonNoData,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonNoData,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name: "DataTooOld",
@@ -58,8 +83,14 @@ func TestComputeResults(t *testing.T) {
 			outside: sensor.SensorData{
 				Scanned: time.Now(),
 			},
-			expectedOn:     false,
-			expectedReason: sensor.ReasonNoEnoughData,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonNoEnoughData,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name: "LowInsideTemperature",
@@ -73,8 +104,14 @@ func TestComputeResults(t *testing.T) {
 			fanConfig: sensor.FanConfig{
 				MinTempInside: 20.0,
 			},
-			expectedOn:     false,
-			expectedReason: sensor.ReasonInsideTempTooLow,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonInsideTempTooLow,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name: "LowOutsideTemperature",
@@ -89,8 +126,14 @@ func TestComputeResults(t *testing.T) {
 			fanConfig: sensor.FanConfig{
 				MinTempOutside: 10.0,
 			},
-			expectedOn:     false,
-			expectedReason: sensor.ReasonOutsideTempTooLow,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonOutsideTempTooLow,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name: "LowInsideHumidity",
@@ -104,8 +147,14 @@ func TestComputeResults(t *testing.T) {
 			fanConfig: sensor.FanConfig{
 				MinHumidityInside: 50.0,
 			},
-			expectedOn:     false,
-			expectedReason: sensor.ReasonInsideHumidityTooLow,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonInsideHumidityTooLow,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name: "DewPointBelowHysteresis",
@@ -120,8 +169,14 @@ func TestComputeResults(t *testing.T) {
 			fanConfig: sensor.FanConfig{
 				MinDiff: 4.0,
 			},
-			expectedOn:     false,
-			expectedReason: sensor.ReasonDewPointUnderHyst,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonDewPointUnderHyst,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
 			name: "DewPointAboveHysteresis",
@@ -137,11 +192,17 @@ func TestComputeResults(t *testing.T) {
 				MinDiff:    4.0,
 				Hysteresis: 2.0,
 			},
-			expectedOn:     true,
-			expectedReason: sensor.ReasonDewPointOverHyst,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonDewPointOverHyst,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 		{
-			name: "DewPointInBetween",
+			name: "DewPointInBetweenFromLow",
 			inside: sensor.SensorData{
 				DewPoint: 13.0,
 				Scanned:  time.Now(),
@@ -154,8 +215,37 @@ func TestComputeResults(t *testing.T) {
 				MinDiff:    4.0,
 				Hysteresis: 2.0,
 			},
-			expectedOn:     false,
-			expectedReason: sensor.ReasonDewPointInBetween,
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonDewPointInBetween,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: false,
+				Reason:     sensor.ReasonNone,
+			},
+		},
+		{
+			name: "DewPointInBetweenFromHigh",
+			inside: sensor.SensorData{
+				DewPoint: 13.0,
+				Scanned:  time.Now(),
+			},
+			outside: sensor.SensorData{
+				DewPoint: 9.0,
+				Scanned:  time.Now(),
+			},
+			fanConfig: sensor.FanConfig{
+				MinDiff:    4.0,
+				Hysteresis: 2.0,
+			},
+			expectedResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonDewPointInBetween,
+			},
+			lastResult: sensor.ResultData{
+				ShouldBeOn: true,
+				Reason:     sensor.ReasonNone,
+			},
 		},
 	}
 
@@ -165,14 +255,10 @@ func TestComputeResults(t *testing.T) {
 			remoteOverride = tt.remoteOverride
 			fanConfig = tt.fanConfig
 
-			var resultData sensor.ResultData
-			computeResults(tt.inside, tt.outside, &resultData)
+			computeResults(tt.inside, tt.outside, &tt.lastResult)
 
-			if resultData.ShouldBeOn != tt.expectedOn {
-				t.Errorf("expected ShouldBeOn = %v, got %v", tt.expectedOn, resultData.ShouldBeOn)
-			}
-			if resultData.Reason != tt.expectedReason {
-				t.Errorf("expected Reason = %v, got %v", tt.expectedReason, resultData.Reason)
+			if !reflect.DeepEqual(tt.lastResult, tt.expectedResult) {
+				t.Errorf("expected ResultData = %+v, got %+v", tt.expectedResult, tt.lastResult)
 			}
 		})
 	}
