@@ -16,6 +16,9 @@ type sensorData struct {
 	Temperature float64 `json:"temperature"`
 	Humidity    float64 `json:"humidity"`
 	DewPoint    float64 `json:"dew_point"`
+	BatLevel    float64 `json:"bat_level"`
+	RSSI        int16   `json:"rssi"`
+	Uptime      uint32  `json:"up_time_in_sec"`
 }
 
 // info represents the main structure for current system data, including sensor readings and fan control states.
@@ -141,12 +144,18 @@ func (s *webServer) getSensorData() []sensorData {
 			Temperature: s.sensorStore.Inside.AverageTemperature(),
 			Humidity:    s.sensorStore.Inside.AverageHumidity(),
 			DewPoint:    s.sensorStore.Inside.AverageDewPoint(),
+			BatLevel:    float64(sensors.InsideData.BatLevel) / 1000,
+			RSSI:        sensors.InsideData.RSSI,
+			Uptime:      sensors.InsideData.Uptime,
 		},
 		{
 			Name:        "Outside",
 			Temperature: s.sensorStore.Outside.AverageTemperature(),
 			Humidity:    s.sensorStore.Outside.AverageHumidity(),
 			DewPoint:    s.sensorStore.Outside.AverageDewPoint(),
+			BatLevel:    float64(sensors.OutsideData.BatLevel) / 1000,
+			RSSI:        sensors.OutsideData.RSSI,
+			Uptime:      sensors.OutsideData.Uptime,
 		},
 	}
 }

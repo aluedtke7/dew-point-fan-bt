@@ -8,6 +8,64 @@ import (
 	"time"
 )
 
+func TestFormatUptime(t *testing.T) {
+	tests := []struct {
+		name     string
+		seconds  uint32
+		expected string
+	}{
+		{
+			name:     "Zero uptime",
+			seconds:  0,
+			expected: "0d 0h 0m",
+		},
+		{
+			name:     "Less than a minute",
+			seconds:  59,
+			expected: "0d 0h 0m",
+		},
+		{
+			name:     "Exactly one minute",
+			seconds:  60,
+			expected: "0d 0h 1m",
+		},
+		{
+			name:     "One hour with no extra minutes",
+			seconds:  3600,
+			expected: "0d 1h 0m",
+		},
+		{
+			name:     "One day with no extra hours or minutes",
+			seconds:  86400,
+			expected: "1d 0h 0m",
+		},
+		{
+			name:     "One day, one hour, and one minute",
+			seconds:  90060, // 86400 + 3600 + 60
+			expected: "1d 1h 1m",
+		},
+		{
+			name:     "Multiple days, hours, and minutes",
+			seconds:  172799, // 2 days - 1 second
+			expected: "1d 23h 59m",
+		},
+		{
+			name:     "100 days",
+			seconds:  8640000, // 100 days in seconds: 100 * 24 * 3600
+			expected: "100d 0h 0m",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatUptime(tt.seconds)
+			if result != tt.expected {
+				t.Errorf("formatUptime(%v) = %v, want %v", tt.seconds, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestParseWS02Data(t *testing.T) {
 	tests := []struct {
 		name           string
