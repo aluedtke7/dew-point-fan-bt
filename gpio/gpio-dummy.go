@@ -1,4 +1,4 @@
-//go:build !linux && !arm
+//go:build (!arm && linux) || darwin
 
 package gpio
 

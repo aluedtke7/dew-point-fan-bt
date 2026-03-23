@@ -1,10 +1,11 @@
-//go:build !linux && !arm
+//go:build (!arm && linux) || darwin
 
 package display
 
 import (
-	"github.com/d2r2/go-logger"
 	"strings"
+
+	"github.com/d2r2/go-logger"
 )
 
 var lgTerm = logger.NewPackageLogger("term", logger.InfoLevel)
