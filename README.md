@@ -114,8 +114,15 @@ Check if service could be started:
 
     journalctl -f -u dpf-bt.service
 
+## Tips
+When the app terminates with an error message of `bluetooth: adapter is not powered`, check this:
+
+- check the rfkill status with `rfkill list`
+- if Bluetooth shows `Soft blocked: yes`, unblock it with `sudo rfkill unblock bluetooth`
+- start app again
+
 ## Cross compilation
-`buildTime` is a variable in `dpf-main.go` which holds the build timestamp.
+`buildTime` is a variable in `dpf-main.go` which holds the build timestamp. This timestamp is displayed on one of the screens.
 
     # build binary for Arm on Linux with timestamp
     GOOS=linux GOARCH=arm GOARM=7 go build -o dpf-bt -ldflags "-X 'main.buildTime=$(date '+%Y-%m-%d %H:%M:%S')'"

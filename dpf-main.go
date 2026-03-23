@@ -6,14 +6,15 @@ import (
 	"dpf-bt/gpio"
 	"dpf-bt/sensor"
 	"dpf-bt/utility"
-	"github.com/d2r2/go-logger"
-	"github.com/fsnotify/fsnotify"
-	"github.com/spf13/viper"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"github.com/d2r2/go-logger"
+	"github.com/fsnotify/fsnotify"
+	"github.com/spf13/viper"
 	bt "tinygo.org/x/bluetooth"
 )
 
@@ -64,7 +65,8 @@ func main() {
 	adapter := bt.DefaultAdapter
 	err = adapter.Enable()
 	if err != nil {
-		lg.Panic("failed to enable BLE adapter")
+		lg.Error("Check: 1) rfkill unblock bluetooth, 2) sudo systemctl start bluetooth")
+		lg.Panicf("failed to enable BLE adapter: %v", err)
 	}
 
 	disp, err = display.New(false, lcdScrollSpeed, lcdDelay)
@@ -98,7 +100,7 @@ func main() {
 
 	err = adapter.Scan(onScan)
 	if err != nil {
-		lg.Panic("failed to register scan callback")
+		lg.Panicf("failed to register scan callback - %s", err)
 	}
 }
 
